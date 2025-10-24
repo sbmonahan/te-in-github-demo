@@ -23,9 +23,6 @@ env:
 jobs:
   run-readyapi-tests:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Needed to push results back to repo
-      actions: read    # Needed to download artifacts
       
     steps:
     - name: Checkout repository
@@ -152,33 +149,27 @@ jobs:
         echo "Downloading results for: $EXECUTION_ID"
         node scripts/download-results.js "$EXECUTION_ID"
         
-    - name: Commit test results
+    - name: Prepare test results for artifacts
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Add timestamp to results directory
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-        RESULTS_DIR="test-results/$TIMESTAMP"
+        EXECUTION_ID="${{ steps.upload.outputs.execution_id }}"
         
         if [ -d "temp-results" ]; then
-          mkdir -p "$RESULTS_DIR"
-          mv temp-results/* "$RESULTS_DIR/" 2>/dev/null || true
-          rmdir temp-results 2>/dev/null || true
-          
-          git add test-results/
-          git commit -m "Add test results from execution ${{ steps.upload.outputs.execution_id }} - $TIMESTAMP" || exit 0
-          git push
+          echo "✓ Test results found in temp-results/"
+          ls -la temp-results/
+          echo "execution_timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+          echo "✓ Results prepared for artifact upload"
         else
-          echo "No results to commit"
+          echo "⚠️ No results directory found"
         fi
+      id: prepare
         
-    - name: Upload artifacts
+    - name: Upload test results as artifacts
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: readyapi-test-results
-        path: test-results/
+        name: readyapi-test-results-${{ steps.prepare.outputs.execution_timestamp || github.run_number }}
+        path: temp-results/
         retention-days: 30
         
     - name: Cleanup TestEngine Container
