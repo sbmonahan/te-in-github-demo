@@ -22,16 +22,19 @@ This repository demonstrates how to use GitHub Actions to:
 ## Required GitHub Secrets
 
 - `TESTENGINE_LICENSE_KEY` - Your TestEngine license key
+- `TESTENGINE_ADMIN_PASSWORD` - The admin password you configured during TestEngine initialization
 
 ### How to Add Secrets:
 1. Go to your repository → Settings → Secrets and variables → Actions
 2. Click "New repository secret"  
-3. Add `TESTENGINE_LICENSE_KEY` with your TestEngine license key
+3. Add both secrets:
+   - `TESTENGINE_LICENSE_KEY` - Your TestEngine license key
+   - `TESTENGINE_ADMIN_PASSWORD` - Your TestEngine admin password
 
 ### Authentication:
-- TestEngine container creates an admin user automatically (admin/admin)
-- API calls use this internal TestEngine admin user for authentication
-- No additional SmartBear credentials needed for API operations
+- TestEngine container uses license key for activation
+- TestEngine admin user (username: admin) authenticates with the admin password
+- API calls use admin/[your-admin-password] for basic authentication
 
 ## Workflow
 

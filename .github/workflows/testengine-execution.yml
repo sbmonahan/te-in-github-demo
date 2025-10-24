@@ -16,7 +16,7 @@ on:
 env:
   TESTENGINE_URL: http://localhost:8080
   TESTENGINE_USERNAME: admin
-  TESTENGINE_PASSWORD: admin
+  TESTENGINE_PASSWORD: ${{ secrets.TESTENGINE_ADMIN_PASSWORD }}
 
 jobs:
   run-readyapi-tests:
@@ -53,8 +53,7 @@ jobs:
           --name testengine \
           -p 8080:8080 \
           -e TESTENGINE_LICENSE_KEY="${{ secrets.TESTENGINE_LICENSE_KEY }}" \
-          -e TESTENGINE_ADMIN_USERNAME=admin \
-          -e TESTENGINE_ADMIN_PASSWORD=admin \
+          -e TESTENGINE_PASSWORD="${{ secrets.TESTENGINE_ADMIN_PASSWORD }}" \
           -e JVM_OPT_XMS="-Xms2g" \
           -e JVM_OPT_XMX="-Xmx4g" \
           --add-host host.docker.internal:host-gateway \
@@ -63,7 +62,15 @@ jobs:
         echo "Container started, waiting for initialization..."
         sleep 30
         echo "Checking container logs for license issues..."
-        docker logs testengine | head -50
+        docker logs testengine | head -100
+        
+        echo ""
+        echo "Checking container environment variables..."
+        docker exec testengine printenv | grep -i testengine || true
+        
+        echo ""
+        echo "Testing basic container connectivity..."
+        curl -v http://localhost:8080/api/v1/version || true
         
         echo "Waiting for TestEngine to be ready..."
         timeout 300s bash -c '

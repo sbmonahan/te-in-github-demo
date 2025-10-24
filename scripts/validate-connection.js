@@ -26,7 +26,7 @@ async function validateConnection() {
             timeout: 10000
         };
         
-        // If username and password are provided, use basic authentication
+        // Try authentication with provided credentials
         if (username && password) {
             config.auth = {
                 username: username,
