@@ -151,6 +151,63 @@ te-in-github-demo/
 └── package.json                        # Node.js dependencies
 ```
 
+## 🏗️ Architecture & Design
+
+### Technology Stack Decisions
+
+**Node.js + JavaScript Scripts**
+- **Cross-platform compatibility**: Works on Ubuntu, Windows, and macOS GitHub runners
+- **Rich ecosystem**: Leverages `axios` for HTTP, `form-data` for multipart uploads, `fs-extra` for file operations
+- **Better error handling**: Structured try/catch blocks with detailed error messages vs. shell script error handling
+- **Complex API interactions**: Handles JSON parsing, multipart form data, and file streaming more elegantly than shell commands
+
+**Docker Container Approach**
+- **Cost efficiency**: No external SaaS fees - runs entirely on GitHub's infrastructure
+- **Isolation**: Each workflow gets a fresh, clean TestEngine instance
+- **Speed**: No network latency to external services
+- **Security**: Test data never leaves GitHub's secure environment
+- **Consistency**: Same TestEngine version and configuration every time
+
+**SmartBear License Manager (SLM)**
+- **Modern licensing**: Uses SmartBear's current licensing infrastructure
+- **Ephemeral friendly**: Designed for temporary container activation/deactivation
+- **Secure**: License keys stored in GitHub Secrets, not exposed in code or logs
+
+### Modular Script Architecture
+
+**Separation of Concerns**
+Each script handles one specific responsibility:
+- `activate-license.js`: SLM license management only
+- `upload-project.js`: Project file upload and job submission
+- `poll-execution.js`: Status monitoring with timeout handling
+- `download-results-fixed.js`: Multi-format report generation
+
+**Benefits of Modularity**
+- **Testability**: Each script can be tested independently with `npm run <command>`
+- **Debuggability**: Isolate issues to specific workflow steps
+- **Maintainability**: Changes to one step don't affect others
+- **Reusability**: Scripts can be used outside GitHub Actions (local development, other CI systems)
+
+### CI/CD Integration Patterns
+
+**Polling vs. Webhooks**
+- **Simplicity**: No external webhook endpoints or callback URLs needed
+- **Reliability**: Not dependent on network callbacks or external routing
+- **GitHub Actions native**: Fits the sequential step execution model
+- **Error resilience**: Built-in timeout and retry logic
+
+**Artifact Storage Strategy**
+- **GitHub native**: Uses GitHub Artifacts instead of external storage
+- **Automatic cleanup**: 30-day retention with configurable policies
+- **Multiple formats**: JSON (programmatic), XML (CI integration), PDF (reports), Excel (analysis)
+- **Timestamped naming**: Easy identification and historical tracking
+
+**Security Model**
+- **Ephemeral containers**: Destroyed after each run, no persistent state
+- **Secret management**: All sensitive data in GitHub Secrets
+- **Network isolation**: TestEngine container has no external network access
+- **Minimal privileges**: Admin credentials only for container lifecycle
+
 ## Report Formats
 ```
 ```
