@@ -12,7 +12,40 @@ This repository provides a complete solution for running ReadyAPI TestEngine tes
 ✅ **Secure**: Uses SmartBear License Manager (SLM) with GitHub Secrets  
 ✅ **Zero Setup**: No infrastructure needed - runs entirely in GitHub Actions  
 
-## 🚀 Quick Start
+## � Prerequisites
+
+Before using this workflow, you need:
+
+1. **SmartBear Account** with TestEngine license
+2. **ReadyAPI project** exported as XML
+3. **GitHub repository** with Actions enabled
+4. **SLM Access Key** (see setup instructions below)
+
+### Required GitHub Secrets
+
+| Secret Name | Required | Description |
+|-------------|----------|-------------|
+| `TESTENGINE_LICENSE_KEY` | ✅ **Yes** | Your SLM access key (UUID format) |
+| `TE_SLM_SERVER` | ❌ Optional | Custom SLM server URL (leave empty for SmartBear hosted SLM) |
+
+### Troubleshooting License Issues
+
+**If you get license errors:**
+
+1. **Check License Valid**: Log into https://manage.smartbear.com/ → verify your assigned licenses
+2. **Verify Access Key**: User icon → Settings → Access Key (must be active)
+3. **Check License Type**: TestEngine license required (not just ReadyAPI)
+4. **Contact Support**: If issues persist, contact SmartBear support with your account details
+
+> **📚 License Documentation**: [SmartBear ID-based Licenses for TestEngine](https://support.smartbear.com/testengine/docs/en/testengine-licenses/smartbear-id-based-licenses/work-with-smartbear-hosted-id-based-licenses.html)
+
+**Common License Problems:**
+- ❌ Using ReadyAPI license instead of TestEngine license
+- ❌ Expired or inactive license  
+- ❌ Wrong access key (copied license key instead of SLM access key)
+- ❌ License already active on another instance
+
+## �🚀 Quick Start
 
 ### Step 1: Fork or Use This Repository
 1. Fork this repository to your GitHub account, or
@@ -21,11 +54,14 @@ This repository provides a complete solution for running ReadyAPI TestEngine tes
 ### Step 2: Get Your SmartBear License Manager Access Key 🔑
 You need a SmartBear SLM access key (NOT a direct license key). Here's how to get it:
 
-1. **Go to SmartBear Account**: https://accounts.smartbear.com/
-2. **Log in** with your SmartBear credentials
-3. **Navigate to**: Account Settings → API Access Keys  
-4. **Create New Key**: Click "Create API Access Key" or use existing key
-5. **Copy the Key**: It looks like `f0ac2773-012c-40d8-a9ec-aa0bf42e9d0a` (UUID format)
+1. **Go to SmartBear License Management Portal**: https://manage.smartbear.com/
+2. **Log in** with your SmartBear credentials  
+3. **Click the user icon** in the top right corner
+4. **Select "Settings"** from the dropdown menu
+5. **Copy your Access Key** from the Access Key dialog
+6. **The key format**: It looks like `f0ac2773-xxxx-xxxx-xxxx-aa0bf42e9d0a` (UUID format)
+
+> **📚 Official Documentation**: [Get Access Key - SmartBear License Management](https://support.smartbear.com/administration/docs/en/smartbear-license-management/work-with-smartbear-license-management/license-management-for-license-users.html#get-access-key)
 
 **⚠️ Important**: This is your SLM access key, not the license key itself. SLM manages license activation automatically.
 
@@ -41,47 +77,44 @@ Add your SLM access key as a GitHub Secret:
 5. **Optional**: Add `TE_SLM_SERVER` if using private SLM (most users skip this)
 
 ### Step 4: Add Your ReadyAPI Project
-1. **Export your ReadyAPI project** as XML from ReadyAPI/SoapUI
-2. **Upload the XML file** to the `readyapi-projects/` folder
-3. **Commit and push** to trigger the workflow
+The repository includes a **sample ReadyAPI project** (`te-sample-readyapi-project.xml`) that you can test immediately, or replace with your own project:
+
+#### Option A: Test with Sample Project (Quickest)
+- The sample project is ready to run immediately
+- Uses public JSONPlaceholder API (no authentication needed)
+- Just proceed to Step 5 to test the workflow
+
+#### Option B: Use Your Own ReadyAPI Project
+1. **Export your ReadyAPI project** as XML:
+   - In ReadyAPI/SoapUI: File → Export Project → Save as XML
+   - Ensure all test suites, test cases, and assertions are included
+   
+2. **Add your project file**:
+   - Upload your XML file to the `readyapi-projects/` folder
+   - You can replace `te-sample-readyapi-project.xml` or add alongside it
+   
+3. **Update workflow (if using different filename)**:
+   - If your file has a different name, update the default in `.github/workflows/testengine-execution.yml`
+   - Find line: `default: 'te-sample-readyapi-project.xml'`
+   - Change to: `default: 'your-project-name.xml'`
+   
+4. **Manual execution option**:
+   - Go to Actions → "ReadyAPI TestEngine Execution" → "Run workflow"
+   - Specify your project filename in the input field
+   - Click "Run workflow"
+
+#### Project Requirements:
+- ✅ **Format**: ReadyAPI project exported as XML
+- ✅ **Endpoints**: Must be accessible from GitHub Actions (public APIs or accessible URLs)
+- ✅ **Authentication**: Configure in project (avoid hardcoded credentials)
+- ✅ **Test Suites**: Include at least one test suite with test cases
 
 ### Step 5: Run and Get Results 🎯
 - **Push to main branch** or create a pull request
 - **Go to Actions tab** to watch execution
 - **Download results** from the Artifacts section (see detailed instructions below)
 
-## 📋 Prerequisites
-
-Before using this workflow, you need:
-
-1. **SmartBear Account** with TestEngine license
-2. **ReadyAPI project** exported as XML
-3. **GitHub repository** with Actions enabled
-4. **SLM Access Key** (see setup instructions above)
-
-### Required GitHub Secrets
-
-| Secret Name | Required | Description |
-|-------------|----------|-------------|
-| `TESTENGINE_LICENSE_KEY` | ✅ **Yes** | Your SLM access key (UUID format) |
-| `TE_SLM_SERVER` | ❌ Optional | Custom SLM server URL (leave empty for SmartBear hosted SLM) |
-
-### Troubleshooting License Issues
-
-**If you get license errors:**
-
-1. **Check License Valid**: Log into https://accounts.smartbear.com/ → My Licenses
-2. **Verify Access Key**: Account Settings → API Access Keys (must be active)
-3. **Check License Type**: TestEngine license required (not just ReadyAPI)
-4. **Contact Support**: If issues persist, contact SmartBear support with your account details
-
-**Common License Problems:**
-- ❌ Using ReadyAPI license instead of TestEngine license
-- ❌ Expired or inactive license  
-- ❌ Wrong access key (copied license key instead of SLM access key)
-- ❌ License already active on another instance
-
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 te-in-github-demo/
