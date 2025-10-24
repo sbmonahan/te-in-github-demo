@@ -150,6 +150,9 @@ te-in-github-demo/
 ├── README.md                           # This file
 └── package.json                        # Node.js dependencies
 ```
+
+## Report Formats
+```
 ```
 
 ## � Workflow Execution
@@ -179,7 +182,6 @@ gh workflow run testengine-execution.yml
 gh workflow run testengine-execution.yml -f project_name="your-project.xml"
 ```
 
-**Via GitHub API:**
 ## Report Formats
 
 The workflow downloads test results in multiple formats using the documented TestEngine API:
