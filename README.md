@@ -14,6 +14,23 @@ This repository provides a complete solution for running ReadyAPI TestEngine tes
 ✅ **Secure**: Uses SmartBear License Manager (SLM) with GitHub Secrets  
 ✅ **Zero Setup**: No infrastructure needed - runs entirely in GitHub Actions  
 
+## 🔄 How It Works (Workflow Steps)
+
+The GitHub Actions workflow automatically:
+
+1. **🚀 Environment Setup** - Checks out code, installs Node.js dependencies
+2. **🐳 Start TestEngine** - Spins up TestEngine Docker container (optimized startup)
+3. **⚡ Health Check** - Waits for TestEngine to be ready (~30-60 seconds)
+4. **🔑 License Activation** - Activates license via SmartBear SLM
+5. **📤 Upload Project** - Uploads your ReadyAPI project to TestEngine
+6. **▶️ Execute Tests** - Runs all test suites in the project
+7. **⏱️ Monitor Progress** - Polls execution status until completion
+8. **📊 Generate Reports** - Downloads JSON, JUnit XML, PDF, and Excel reports
+9. **💾 Store Results** - Saves all reports as GitHub Artifacts (30-day retention)
+10. **🧹 Cleanup** - Stops and removes TestEngine container
+
+**Total Runtime**: ~1.5-2 minutes (50% faster than standard TestEngine setup)
+
 ## � Prerequisites
 
 Before using this workflow, you need:
@@ -99,10 +116,20 @@ The repository includes a **sample ReadyAPI project** (`te-sample-readyapi-proje
    - Click "Run workflow"
 
 #### Project Requirements:
-- ✅ **Format**: ReadyAPI project exported as XML
+- ✅ **Format**: ReadyAPI project exported as XML OR zipped composite project
+- ✅ **Composite Projects**: If using external files (data sources, certificates, attachments) or [composite projects](https://support.smartbear.com/readyapi/docs/testing/teamwork.html), export as ZIP package
 - ✅ **Endpoints**: Must be accessible from GitHub Actions (public APIs or accessible URLs)
 - ✅ **Authentication**: Configure in project (avoid hardcoded credentials)
 - ✅ **Test Suites**: Include at least one test suite with test cases
+
+**📦 Exporting Composite Projects as ZIP:**
+For projects with external dependencies or composite structure:
+1. In ReadyAPI: Right-click project → **Export** from context menu
+2. Select folder to save the ZIP package  
+3. ReadyAPI automatically includes all required files and dependencies
+4. Upload the ZIP file to `readyapi-projects/` folder instead of XML
+
+> **📚 Reference**: [TestEngine Run Tests Documentation](https://support.smartbear.com/testengine/docs/en/work-with-testengine/run-tests.html#1-prepare-a-readyapi-project)
 
 ### Step 5: Run and Get Results 🎯
 - **Push to main branch** or create a pull request
@@ -210,24 +237,7 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/OWNER/REPO/actions/artifacts
 ```
 
-## 🔄 How It Works (Workflow Steps)
-
-The GitHub Actions workflow automatically:
-
-1. **🚀 Environment Setup** - Checks out code, installs Node.js dependencies
-2. **🐳 Start TestEngine** - Spins up TestEngine Docker container (optimized startup)
-3. **⚡ Health Check** - Waits for TestEngine to be ready (~30-60 seconds)
-4. **🔑 License Activation** - Activates license via SmartBear SLM
-5. **📤 Upload Project** - Uploads your ReadyAPI project to TestEngine
-6. **▶️ Execute Tests** - Runs all test suites in the project
-7. **⏱️ Monitor Progress** - Polls execution status until completion
-8. **📊 Generate Reports** - Downloads JSON, JUnit XML, PDF, and Excel reports
-9. **💾 Store Results** - Saves all reports as GitHub Artifacts (30-day retention)
-10. **🧹 Cleanup** - Stops and removes TestEngine container
-
-**Total Runtime**: ~1.5-2 minutes (50% faster than standard TestEngine setup)
-
-## 🚨 Troubleshooting Common Issues
+##  Troubleshooting Common Issues
 
 ### License Activation Fails
 ```
