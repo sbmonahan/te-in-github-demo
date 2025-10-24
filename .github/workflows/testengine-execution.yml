@@ -143,11 +143,11 @@ jobs:
         echo "Polling execution: $EXECUTION_ID"
         node scripts/poll-execution.js "$EXECUTION_ID"
         
-    - name: Download test results
+    - name: Download test results  
       run: |
         EXECUTION_ID="${{ steps.upload.outputs.execution_id }}"
-        echo "Downloading results for: $EXECUTION_ID"
-        node scripts/download-results.js "$EXECUTION_ID"
+        echo "Downloading results using proper Accept headers for: $EXECUTION_ID"
+        node scripts/download-results-fixed.js "$EXECUTION_ID"
         
     - name: Prepare test results for artifacts
       run: |

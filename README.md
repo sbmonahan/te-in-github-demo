@@ -55,15 +55,36 @@ This repository demonstrates how to use GitHub Actions to:
 3. Update container env: `-e TESTENGINE_PASSWORD="${{ secrets.TESTENGINE_ADMIN_PASSWORD }}"`
 4. This provides additional security isolation if running in shared environments
 
+## Features
+
+- **🚀 Automated TestEngine Setup**: Spins up TestEngine in Docker container
+- **🔑 License Management**: Activates TestEngine license via SLM (SmartBear License Manager)  
+- **📊 Project Execution**: Uploads and executes ReadyAPI projects
+- **⏱️ Smart Polling**: Monitors execution status with timeout protection
+- **📋 Multiple Report Formats**: Downloads JSON, JUnit XML, PDF, and Excel reports
+- **💾 Artifact Storage**: Stores test results as GitHub Artifacts (no git commits)
+- **🧹 Automatic Cleanup**: Properly cleans up containers after execution
+
+## Report Formats
+
+The workflow downloads test results in multiple formats using the documented TestEngine API:
+
+| Format | Accept Header | File Extension | Use Case |
+|--------|---------------|----------------|----------|
+| JSON | `application/json` | `.json` | Detailed programmatic analysis |
+| JUnit XML | `application/junit+xml` | `.xml` | CI/CD integration & test reporting |
+| PDF | `application/pdf` | `.pdf` | Executive reports & documentation |
+| Excel | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` | `.xlsx` | Data analysis & stakeholder reports |
+
 ## Workflow
 
 The GitHub Actions workflow will:
 1. Check out the repository
-2. Start a TestEngine Docker container
+2. Start a TestEngine Docker container  
 3. Wait for TestEngine to be ready
-4. Upload ReadyAPI project to TestEngine
-5. Execute the project
-6. Poll for completion
-7. Download results
-8. Commit results back to the repository
+4. Activate TestEngine license via SLM
+5. Upload ReadyAPI project to TestEngine
+6. Poll for execution completion
+7. Download results in multiple formats (JSON, JUnit, PDF, Excel)
+8. Store results as GitHub Artifacts
 9. Clean up the TestEngine container

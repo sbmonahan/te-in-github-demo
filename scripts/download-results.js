@@ -10,6 +10,10 @@ async function downloadResults(executionId) {
     try {
         console.log(`Downloading results for execution: ${executionId}`);
         
+        // Wait a moment for reports to be fully generated
+        console.log('Waiting 10 seconds for report generation to complete...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        
         // Create temporary results directory
         const tempDir = path.join(process.cwd(), 'temp-results');
         await fs.ensureDir(tempDir);
@@ -33,6 +37,14 @@ async function downloadResults(executionId) {
             const reportPath = path.join(tempDir, `execution-report-${executionId}.json`);
             await fs.writeJson(reportPath, reportResponse.data, { spaces: 2 });
             console.log(`✓ Downloaded execution report: ${reportPath}`);
+            
+            // Log available report information from the execution report
+            if (reportResponse.data.reportStatus) {
+                console.log(`Report status: ${reportResponse.data.reportStatus}`);
+            }
+            if (reportResponse.data.reports) {
+                console.log('Available reports:', reportResponse.data.reports);
+            }
         } catch (error) {
             console.warn('⚠ Could not download execution report:', error.message);
         }

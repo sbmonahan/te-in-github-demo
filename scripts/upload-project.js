@@ -27,13 +27,8 @@ async function uploadProject(projectFileName) {
         formData.append('jobDescription', `tag=GitHub Actions,label=${projectFileName}`);
         formData.append('environment', 'GitHub Actions Container');
         
-        // Enable multiple report formats
-        formData.append('generateJunitReport', 'true');     // Enable JUnit XML report
-        formData.append('generateReport', 'true');          // Enable HTML/PDF report generation
-        formData.append('reportFormat', 'PDF');             // Specify PDF format
-        formData.append('generateExcelReport', 'true');     // Enable Excel report
-        formData.append('includeTestData', 'true');         // Include test data in reports
-        formData.append('includeRequestResponse', 'true');  // Include request/response details
+        // Note: Report formats are determined by Accept headers during download, 
+        // not by upload parameters. All formats are available by default.
 
         const config = {
             headers: {
