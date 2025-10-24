@@ -4,6 +4,8 @@
 
 > **⚠️ IMPORTANT DISCLAIMER**: This is sample code provided for demonstration purposes only. It is not warranted for any particular use case and is provided "as-is" without any support or warranty. Use at your own risk and discretion.
 
+> **📢 READ-ONLY REPOSITORY**: This repository is for demonstration and learning purposes only. Issues, pull requests, discussions, and other interactive features are disabled. This is not a supported product.
+
 This repository provides a complete solution for running ReadyAPI TestEngine tests in GitHub Actions CI/CD pipelines. It automatically spins up TestEngine in Docker, executes your ReadyAPI projects, and generates multiple report formats (JSON, JUnit XML, PDF, Excel).
 
 ## What This Does
