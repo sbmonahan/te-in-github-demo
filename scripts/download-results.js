@@ -48,6 +48,56 @@ async function downloadResults(executionId) {
             console.warn('⚠ Could not download JUnit report:', error.message);
         }
 
+        // Download PDF report
+        try {
+            const pdfResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/reports/pdf`, {
+                ...authConfig,
+                responseType: 'arraybuffer'
+            });
+
+            const pdfPath = path.join(tempDir, `test-report-${executionId}.pdf`);
+            await fs.writeFile(pdfPath, pdfResponse.data);
+            console.log(`✓ Downloaded PDF report: ${pdfPath}`);
+        } catch (error) {
+            console.warn('⚠ Could not download PDF report:', error.message);
+        }
+
+        // Download Excel report  
+        try {
+            const excelResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/reports/excel`, {
+                ...authConfig,
+                responseType: 'arraybuffer'
+            });
+
+            const excelPath = path.join(tempDir, `test-report-${executionId}.xlsx`);
+            await fs.writeFile(excelPath, excelResponse.data);
+            console.log(`✓ Downloaded Excel report: ${excelPath}`);
+        } catch (error) {
+            console.warn('⚠ Could not download Excel report:', error.message);
+        }
+
+        // Try alternative report endpoints
+        const alternativeEndpoints = [
+            { url: `/api/v1/testjobs/${executionId}/report/pdf`, filename: `report-alt-${executionId}.pdf`, type: 'arraybuffer' },
+            { url: `/api/v1/testjobs/${executionId}/report/excel`, filename: `report-alt-${executionId}.xlsx`, type: 'arraybuffer' },
+            { url: `/api/v1/testjobs/${executionId}/reports/html`, filename: `report-${executionId}.html`, type: 'text' }
+        ];
+
+        for (const endpoint of alternativeEndpoints) {
+            try {
+                const response = await axios.get(`${testEngineUrl}${endpoint.url}`, {
+                    ...authConfig,
+                    responseType: endpoint.type
+                });
+
+                const filePath = path.join(tempDir, endpoint.filename);
+                await fs.writeFile(filePath, response.data);
+                console.log(`✓ Downloaded ${endpoint.filename}: ${filePath}`);
+            } catch (error) {
+                console.warn(`⚠ Could not download ${endpoint.filename}:`, error.response?.status || error.message);
+            }
+        }
+
         // Download execution logs
         try {
             const logsResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/logs`, authConfig);

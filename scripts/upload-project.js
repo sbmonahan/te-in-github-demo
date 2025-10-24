@@ -26,6 +26,14 @@ async function uploadProject(projectFileName) {
         formData.append('testSuite', 'Test Suite 1');  // Actual test suite name from ReadyAPI project!
         formData.append('jobDescription', `tag=GitHub Actions,label=${projectFileName}`);
         formData.append('environment', 'GitHub Actions Container');
+        
+        // Enable multiple report formats
+        formData.append('generateJunitReport', 'true');     // Enable JUnit XML report
+        formData.append('generateReport', 'true');          // Enable HTML/PDF report generation
+        formData.append('reportFormat', 'PDF');             // Specify PDF format
+        formData.append('generateExcelReport', 'true');     // Enable Excel report
+        formData.append('includeTestData', 'true');         // Include test data in reports
+        formData.append('includeRequestResponse', 'true');  // Include request/response details
 
         const config = {
             headers: {
@@ -43,7 +51,16 @@ async function uploadProject(projectFileName) {
             };
         }
         
-        console.error('Form data includes file, testSuite=Test Suite 1, jobDescription, environment');
+        console.error('Form data includes:');
+        console.error('- file: ReadyAPI project');
+        console.error('- testSuite: Test Suite 1');
+        console.error('- jobDescription: GitHub Actions metadata');
+        console.error('- environment: GitHub Actions Container');
+        console.error('- generateJunitReport: true');
+        console.error('- generateReport: true (PDF format)');
+        console.error('- generateExcelReport: true');
+        console.error('- includeTestData: true');
+        console.error('- includeRequestResponse: true');
         
         const response = await axios.post(`${testEngineUrl}/api/v1/testjobs`, formData, config);
 
