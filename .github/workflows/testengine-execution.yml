@@ -127,7 +127,12 @@ jobs:
       run: |
         PROJECT_FILE="${{ github.event.inputs.project_name || 'te-sample-readyapi-project.xml' }}"
         echo "Uploading project: $PROJECT_FILE"
-        EXECUTION_ID=$(node scripts/upload-project.js "$PROJECT_FILE")
+        
+        # Capture output and get the last line (execution ID)
+        OUTPUT=$(node scripts/upload-project.js "$PROJECT_FILE")
+        EXECUTION_ID=$(echo "$OUTPUT" | tail -n 1)
+        
+        echo "Captured execution ID: $EXECUTION_ID"
         echo "execution_id=$EXECUTION_ID" >> $GITHUB_OUTPUT
         
     - name: Execute ReadyAPI project

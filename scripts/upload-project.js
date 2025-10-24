@@ -16,7 +16,7 @@ async function uploadProject(projectFileName) {
     }
 
     try {
-        console.log(`Uploading project: ${projectFileName}`);
+        console.error(`Uploading project: ${projectFileName}`);
         
         const formData = new FormData();
         const fileStream = fs.createReadStream(projectPath);
@@ -43,19 +43,15 @@ async function uploadProject(projectFileName) {
             };
         }
         
-        console.log('Form data being sent:');
-        console.log('- file:', projectFileName);
-        console.log('- testSuite: Test Suite 1');
-        console.log('- jobDescription: tag=GitHub Actions,label=' + projectFileName);
-        console.log('- environment: GitHub Actions Container');
+        console.error('Form data includes file, testSuite=Test Suite 1, jobDescription, environment');
         
         const response = await axios.post(`${testEngineUrl}/api/v1/testjobs`, formData, config);
 
         const executionId = response.data.testjobId;
-        console.log(`✓ Project uploaded successfully`);
-        console.log(`✓ Execution ID: ${executionId}`);
+        console.error(`✓ Project uploaded successfully`);
+        console.error(`✓ Execution ID: ${executionId}`);
         
-        // Output the execution ID for GitHub Actions to capture
+        // Output ONLY the execution ID for GitHub Actions to capture (clean output)
         console.log(executionId);
         
         return executionId;
