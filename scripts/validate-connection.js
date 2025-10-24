@@ -5,13 +5,18 @@ async function validateConnection() {
     const username = process.env.TESTENGINE_USERNAME;
     const password = process.env.TESTENGINE_PASSWORD;
 
-    if (!testEngineUrl || !username || !password) {
+    if (!testEngineUrl) {
         console.error('Missing required environment variables:');
         console.error('- TESTENGINE_URL:', testEngineUrl ? '✓' : '✗');
-        console.error('- TESTENGINE_USERNAME:', username ? '✓' : '✗');
-        console.error('- TESTENGINE_PASSWORD:', password ? '✓' : '✗');
+        console.error('- TESTENGINE_USERNAME:', username !== undefined ? '✓' : '✗');
+        console.error('- TESTENGINE_PASSWORD:', password !== undefined ? '✓' : '✗');
         process.exit(1);
     }
+    
+    console.log('Environment variables:');
+    console.log('- TESTENGINE_URL:', testEngineUrl ? '✓' : '✗');
+    console.log('- TESTENGINE_USERNAME:', username !== undefined ? '✓ (optional)' : '✗');
+    console.log('- TESTENGINE_PASSWORD:', password !== undefined ? '✓' : '✗');
 
     try {
         console.log('Validating TestEngine connection...');
@@ -33,6 +38,7 @@ async function validateConnection() {
         console.log('✓ Successfully connected to TestEngine');
         console.log(`✓ Server URL: ${testEngineUrl}`);
         console.log(`✓ Response status: ${response.status}`);
+        console.log(`✓ TestEngine version: ${response.data?.version || 'unknown'}`);
         
         return true;
     } catch (error) {
