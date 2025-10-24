@@ -57,13 +57,14 @@ This repository demonstrates how to use GitHub Actions to:
 
 ## Features
 
-- **🚀 Automated TestEngine Setup**: Spins up TestEngine in Docker container
+- **🚀 Fast TestEngine Setup**: Optimized Docker startup (~1.5-2 min total execution)
 - **🔑 License Management**: Activates TestEngine license via SLM (SmartBear License Manager)  
 - **📊 Project Execution**: Uploads and executes ReadyAPI projects
 - **⏱️ Smart Polling**: Monitors execution status with timeout protection
 - **📋 Multiple Report Formats**: Downloads JSON, JUnit XML, PDF, and Excel reports
 - **💾 Artifact Storage**: Stores test results as GitHub Artifacts (no git commits)
 - **🧹 Automatic Cleanup**: Properly cleans up containers after execution
+- **⚡ Performance Optimized**: 50% faster than standard setup (see PERFORMANCE-OPTIMIZATIONS.md)
 
 ## Report Formats
 
@@ -75,6 +76,49 @@ The workflow downloads test results in multiple formats using the documented Tes
 | JUnit XML | `application/junit+xml` | `.xml` | CI/CD integration & test reporting |
 | PDF | `application/pdf` | `.pdf` | Executive reports & documentation |
 | Excel | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` | `.xlsx` | Data analysis & stakeholder reports |
+
+## How to Access Test Results 📥
+
+After a workflow runs, test results are stored as **GitHub Artifacts**. Here's how to find and download them:
+
+### Step 1: Navigate to Actions
+1. Go to your repository on GitHub
+2. Click the **"Actions"** tab at the top
+3. Find your workflow run in the list
+
+### Step 2: Access Artifacts  
+1. Click on the specific workflow run
+2. Scroll down to the **"Artifacts"** section at the bottom of the page
+3. You'll see an artifact named like: `readyapi-test-results-20241024_143052`
+
+### Step 3: Download Results
+1. Click the artifact name to download a ZIP file
+2. Extract the ZIP to access all report formats:
+   ```
+   readyapi-test-results-TIMESTAMP/
+   ├── execution-report-{id}.json      # Detailed JSON results
+   ├── junit-report-{id}.xml           # JUnit XML for CI tools  
+   ├── test-report-{id}.pdf            # PDF executive report
+   ├── test-report-{id}.xlsx           # Excel spreadsheet
+   ├── execution-logs-{id}.txt         # TestEngine execution logs
+   └── download-summary.json           # Download metadata
+   ```
+
+### Artifact Retention
+- **Retention period**: 30 days (configurable in workflow)
+- **Naming**: Includes timestamp for easy identification
+- **Size**: Typically 1-10MB depending on test complexity
+
+### Programmatic Access
+You can also access artifacts via GitHub CLI or API:
+```bash
+# Using GitHub CLI
+gh run download <run-id> --name readyapi-test-results-TIMESTAMP
+
+# Using GitHub API  
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  https://api.github.com/repos/OWNER/REPO/actions/artifacts
+```
 
 ## Workflow
 

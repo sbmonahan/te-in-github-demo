@@ -55,70 +55,37 @@ jobs:
           --name testengine \
           -p 8080:8080 \
           -e TESTENGINE_PASSWORD=admin \
-          -e JVM_OPT_XMS="-Xms2g" \
-          -e JVM_OPT_XMX="-Xmx4g" \
+          -e JVM_OPT_XMS="-Xms1g" \
+          -e JVM_OPT_XMX="-Xmx2g" \
           --add-host host.docker.internal:host-gateway \
           smartbear/readyapi-testengine:latest
         
-        echo "Container started, waiting for initialization..."
-        sleep 30
-        echo "Checking container logs for license issues..."
-        docker logs testengine | head -100
+        echo "Container started, waiting for TestEngine to be ready..."
         
-        echo ""
-        echo "Checking container environment variables..."
-        docker exec testengine printenv | grep -i testengine || true
-        
-        echo ""
-        echo "Checking if admin user was created correctly..."
-        docker logs testengine | grep -i "admin\|password\|user" || echo "No admin/password messages found"
-        
-        echo ""
-        echo "Testing basic container connectivity..."
-        curl -v http://localhost:8080/api/v1/version || true
-        
-        echo "Waiting for TestEngine to be fully healthy (matching Docker healthcheck)..."
-        timeout 300s bash -c '
+        # Optimized health check - single success is sufficient for ephemeral CI environment
+        timeout 120s bash -c '
           attempt=0
-          max_attempts=30
-          consecutive_success=0
-          required_consecutive=3
+          max_attempts=24  # 2 minutes max (24 * 5 seconds)
           
           while [ $attempt -lt $max_attempts ]; do
-            echo "Attempt $((attempt+1))/$max_attempts: Checking TestEngine health..."
+            echo "Attempt $((attempt+1))/$max_attempts: Testing TestEngine readiness..."
             
-            # Use the same healthcheck as Docker Compose
-            if wget -qO- http://localhost:8080/api/v1/version 2>/dev/null || curl -fsS http://localhost:8080/api/v1/version 2>/dev/null; then
-              consecutive_success=$((consecutive_success + 1))
-              echo "✓ Health check passed ($consecutive_success/$required_consecutive consecutive successes)"
-              
-              if [ $consecutive_success -ge $required_consecutive ]; then
-                echo "✓ TestEngine is consistently healthy!"
-                exit 0
-              fi
-            else
-              consecutive_success=0
-              echo "Health check failed, resetting consecutive count"
+            # Single health check is sufficient - if it responds, it is ready
+            if curl -fsS http://localhost:8080/api/v1/version >/dev/null 2>&1; then
+              echo "✅ TestEngine is ready and responding!"
+              exit 0
             fi
             
-            echo "Waiting 10 seconds before next health check..."
-            sleep 10
+            echo "Not ready yet, waiting 5 seconds..."
+            sleep 5
             attempt=$((attempt+1))
           done
           
-          echo "❌ TestEngine failed to become consistently healthy after 5 minutes"
-          docker logs testengine
+          echo "❌ TestEngine failed to start within 2 minutes"
+          docker logs testengine | tail -50
           exit 1
         '
-        echo "TestEngine is consistently healthy!"
         
-        # Final check of license status (similar to Docker Compose te-license service)
-        echo "Checking current license status before activation..."
-        curl -u admin:admin -H "Accept: application/json" http://localhost:8080/api/v1/license || echo "No license found - will activate in next step"
-        
-    - name: Validate TestEngine connection
-      run: node scripts/validate-connection.js
-      
     - name: Activate TestEngine license
       run: node scripts/activate-license.js
       

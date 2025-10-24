@@ -10,9 +10,9 @@ async function downloadResults(executionId) {
     try {
         console.log(`Downloading results for execution: ${executionId}`);
         
-        // Wait a moment for reports to be fully generated
-        console.log('Waiting 10 seconds for report generation to complete...');
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        // Minimal wait - reports are typically ready immediately after FINISHED status
+        console.log('Waiting 3 seconds for report finalization...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Create temporary results directory
         const tempDir = path.join(process.cwd(), 'temp-results');
