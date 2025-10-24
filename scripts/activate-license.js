@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-async function activateLicense() {
+async function activateLicense(maxRetries = 3) {
     const testEngineUrl = process.env.TESTENGINE_URL;
     const username = process.env.TESTENGINE_USERNAME;
     const password = process.env.TESTENGINE_PASSWORD;
@@ -20,13 +20,20 @@ async function activateLicense() {
 
     console.log('Activating TestEngine license via SLM...');
     
+    // Brief wait to ensure TestEngine is fully initialized
+    console.log('Waiting 10 seconds for TestEngine full initialization...');
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    
     if (slmServer) {
         console.log(`Using SLM server: ${slmServer}`);
     } else {
         console.log('Using hosted SLM (no server override).');
     }
 
-    try {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        console.log(`\n--- Attempt ${attempt}/${maxRetries} ---`);
+        
+        try {
         // First, try to get current license status
         const statusConfig = {
             timeout: 10000,
@@ -106,6 +113,7 @@ async function activateLicense() {
             console.log('Could not retrieve final license status:', finalError.message);
         }
         
+        console.log('✅ License activation completed successfully');
         return true;
         
     } catch (error) {
@@ -133,8 +141,16 @@ async function activateLicense() {
             console.error(`  Error: ${error.message}`);
         }
         
-        return false;
+            // If this is not the last attempt, wait before retrying
+            if (attempt < maxRetries) {
+                console.log(`Waiting 15 seconds before retry ${attempt + 1}...`);
+                await new Promise(resolve => setTimeout(resolve, 15000));
+            }
+        }
     }
+    
+    console.error('❌ All license activation attempts failed');
+    return false;
 }
 
 if (require.main === module) {

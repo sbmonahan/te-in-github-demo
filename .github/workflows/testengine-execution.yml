@@ -94,12 +94,34 @@ jobs:
         '
         echo "TestEngine is ready!"
         
-        # Additional wait time for license processing
-        echo "Waiting additional time for license activation..."
-        sleep 60
+        # Wait for license API endpoints to be ready
+        echo "Waiting for TestEngine license API to be ready..."
+        timeout 180s bash -c '
+          attempt=0
+          max_attempts=18
+          while [ $attempt -lt $max_attempts ]; do
+            echo "Attempt $((attempt+1))/$max_attempts: Checking license API availability..."
+            
+            # Check if license API endpoint responds (even with 401 is good - means API is ready)
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" -u admin:admin http://localhost:8080/api/v1/license || echo "000")
+            
+            if [ "$http_code" = "200" ] || [ "$http_code" = "401" ] || [ "$http_code" = "404" ]; then
+              echo "✓ License API is responding (HTTP $http_code)!"
+              break
+            fi
+            
+            echo "License API not ready yet (HTTP $http_code), waiting 10 seconds..."
+            sleep 10
+            attempt=$((attempt+1))
+          done
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "⚠️ License API may not be fully ready, but proceeding..."
+          fi
+        '
         
-        # Check license status via API
-        echo "Checking license status..."
+        # Final check of license status
+        echo "Checking current license status..."
         curl -u admin:admin -H "Accept: application/json" http://localhost:8080/api/v1/license || echo "License check failed - will attempt activation in next step"
         
     - name: Validate TestEngine connection
