@@ -12,6 +12,9 @@ temp-results/
 *.tmp
 *.temp
 
+# Test results (use GitHub Artifacts instead)
+test-results/
+
 # OS generated files
 .DS_Store
 .DS_Store?
