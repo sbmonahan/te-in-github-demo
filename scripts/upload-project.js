@@ -21,7 +21,7 @@ async function uploadProject(projectFileName) {
         const formData = new FormData();
         const fileStream = fs.createReadStream(projectPath);
         
-        // Add all required form fields (matching your working Python script)
+        // Add all required form fields (using correct test suite name from project)
         formData.append('file', fileStream);
         formData.append('testSuite', 'Test Suite 1');  // Actual test suite name from ReadyAPI project!
         formData.append('jobDescription', `tag=GitHub Actions,label=${projectFileName}`);

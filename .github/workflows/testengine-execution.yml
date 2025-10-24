@@ -134,13 +134,7 @@ jobs:
         
         echo "Captured execution ID: $EXECUTION_ID"
         echo "execution_id=$EXECUTION_ID" >> $GITHUB_OUTPUT
-        
-    - name: Execute ReadyAPI project
-      id: execute
-      run: |
-        EXECUTION_ID="${{ steps.upload.outputs.execution_id }}"
-        echo "Starting execution: $EXECUTION_ID"
-        node scripts/start-execution.js "$EXECUTION_ID"
+        echo "✓ Job submitted and started automatically (no separate start call needed)"
         
     - name: Poll for execution completion
       id: poll

@@ -26,25 +26,32 @@ async function pollExecution(executionId, maxWaitMinutes = 30) {
                 };
             }
             
-            const response = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}`, config);
+            // Use the same endpoint as your working Python code
+            const response = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/report`, config);
 
             const status = response.data.status;
-            const currentStatus = response.data.currentStatus;
+            const submitTime = response.data.submitTime;
+            const startTime = response.data.startTime;
             
-            console.log(`Status: ${status} | Current: ${currentStatus}`);
+            console.log(`Status: ${status}`);
+            if (submitTime) console.log(`Submit Time: ${new Date(submitTime).toISOString()}`);
+            if (startTime) console.log(`Start Time: ${new Date(startTime).toISOString()}`);
             
-            // Check if execution is complete
-            if (status === 'FINISHED') {
-                console.log('✓ Execution completed successfully');
-                return {
-                    status: status,
-                    currentStatus: currentStatus,
-                    result: response.data
-                };
-            } else if (status === 'FAILED' || status === 'CANCELED') {
-                console.error(`✗ Execution ${status.toLowerCase()}`);
-                console.error('Final status:', response.data);
-                process.exit(1);
+            // Use the same terminal statuses as your Python code
+            const TERMINAL_STATUSES = new Set(['FINISHED', 'FAILED', 'CANCELED']);
+            
+            if (TERMINAL_STATUSES.has(status)) {
+                if (status === 'FINISHED') {
+                    console.log('✓ Execution completed successfully');
+                    return {
+                        status: status,
+                        result: response.data
+                    };
+                } else {
+                    console.error(`✗ Execution ${status.toLowerCase()}`);
+                    console.error('Final report:', response.data);
+                    process.exit(1);
+                }
             }
             
             // Wait before next poll
