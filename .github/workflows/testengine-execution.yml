@@ -17,6 +17,7 @@ env:
   TESTENGINE_URL: http://localhost:8080
   TESTENGINE_USERNAME: admin
   TESTENGINE_PASSWORD: admin
+  TESTENGINE_LICENSE_KEY: ${{ secrets.TESTENGINE_LICENSE_KEY }}
 
 jobs:
   run-readyapi-tests:
@@ -93,8 +94,19 @@ jobs:
         '
         echo "TestEngine is ready!"
         
+        # Additional wait time for license processing
+        echo "Waiting additional time for license activation..."
+        sleep 60
+        
+        # Check license status via API
+        echo "Checking license status..."
+        curl -u admin:admin -H "Accept: application/json" http://localhost:8080/api/v1/license || echo "License check failed - will attempt activation in next step"
+        
     - name: Validate TestEngine connection
       run: node scripts/validate-connection.js
+      
+    - name: Activate TestEngine license
+      run: node scripts/activate-license.js
       
     - name: Upload ReadyAPI project to TestEngine
       id: upload
