@@ -20,7 +20,7 @@ The GitHub Actions workflow automatically:
 
 1. **🚀 Environment Setup** - Checks out code, installs Node.js dependencies
 2. **🐳 Start TestEngine** - Spins up TestEngine Docker container (optimized startup)
-3. **⚡ Health Check** - Waits for TestEngine to be ready (~30-60 seconds)
+3. **⚡ Health Check** - Waits for TestEngine to be ready (typically 30-90 seconds, max 2 minutes)
 4. **🔑 License Activation** - Activates license via SmartBear SLM
 5. **📤 Upload Project** - Uploads your ReadyAPI project to TestEngine
 6. **▶️ Execute Tests** - Runs all test suites in the project
@@ -40,24 +40,7 @@ Before using this workflow, you need:
 3. **GitHub repository** with Actions enabled
 4. **SLM Access Key** (see setup instructions below)
 
-### Troubleshooting License Issues
-
-**If you get license errors:**
-
-1. **Check License Valid**: Log into https://manage.smartbear.com/ → verify your assigned licenses
-2. **Verify Access Key**: User icon → Settings → Access Key (must be active)
-3. **Check License Type**: TestEngine license required (not just ReadyAPI)
-4. **Contact Support**: If issues persist, contact SmartBear support with your account details
-
-> **📚 License Documentation**: [SmartBear ID-based Licenses for TestEngine](https://support.smartbear.com/testengine/docs/en/testengine-licenses/smartbear-id-based-licenses/work-with-smartbear-hosted-id-based-licenses.html)
-
-**Common License Problems:**
-- ❌ Using ReadyAPI license instead of TestEngine license
-- ❌ Expired or inactive license  
-- ❌ Wrong access key (copied license key instead of SLM access key)
-- ❌ License already active on another instance
-
-## �🚀 Quick Start
+## �� Quick Start
 
 ### Step 1: Fork or Use This Repository
 1. Fork this repository to your GitHub account, or
@@ -131,9 +114,23 @@ For projects with external dependencies or composite structure:
 
 > **📚 Reference**: [TestEngine Run Tests Documentation](https://support.smartbear.com/testengine/docs/en/work-with-testengine/run-tests.html#1-prepare-a-readyapi-project)
 
-### Step 5: Run and Get Results 🎯
-- **Push to main branch** or create a pull request
-- **Go to Actions tab** to watch execution
+### Step 5: Run Tests and Get Results 🎯
+
+**Automatic Execution:**
+The workflow automatically runs when you:
+- **Push to `main` branch**: Every commit to main triggers test execution
+- **Push to `develop` branch**: Every commit to develop triggers test execution  
+- **Create Pull Request to `main`**: All PRs targeting main branch run tests automatically
+
+**Manual Execution:**
+You can also trigger tests on-demand via:
+
+- **GitHub Web Interface**: Actions tab → "ReadyAPI TestEngine Execution" → "Run workflow"
+- **GitHub CLI**: `gh workflow run testengine-execution.yml -f project_name="your-project.xml"`
+- **API**: POST to `/repos/OWNER/REPO/actions/workflows/testengine-execution.yml/dispatches`
+
+**Monitor Execution:**
+- **Go to Actions tab** to watch real-time execution
 - **Download results** from the Artifacts section (see detailed instructions below)
 
 ##  Repository Structure
@@ -153,36 +150,36 @@ te-in-github-demo/
 ├── README.md                           # This file
 └── package.json                        # Node.js dependencies
 ```
+```
 
-## 🔧 Manual Workflow Trigger
+## � Workflow Execution
 
-You can also run tests on-demand:
+### Automatic Triggers
+The workflow automatically runs when:
+- **Push to `main` branch**: Every commit to main triggers test execution
+- **Push to `develop` branch**: Every commit to develop triggers test execution  
+- **Pull Requests to `main`**: All PRs targeting main branch run tests automatically
+- **Scheduled runs**: Can be configured via cron syntax in workflow file (currently disabled)
 
-1. **Go to Actions tab** in your GitHub repository
-2. **Click "ReadyAPI TestEngine Execution"** workflow
-3. **Click "Run workflow"** button
-4. **Select branch** and **specify project file** (optional)
-5. **Click "Run workflow"** to start execution
+### Manual Triggers
+You can manually trigger the workflow in several ways:
 
-## 🔒 Security & Authentication
+**Via GitHub Web Interface:**
+1. Go to your repository → **Actions** tab
+2. Select **"ReadyAPI TestEngine Execution"** workflow
+3. Click **"Run workflow"** → Select branch → Specify project file (optional)
+4. Click **"Run workflow"** to start execution
 
-**License Management:**
-- Uses SmartBear License Manager (SLM) for secure license activation
-- SLM access key stored in GitHub Secrets (encrypted)
-- No license keys exposed in code or logs
+**Via GitHub CLI:**
+```bash
+# Run with default project file
+gh workflow run testengine-execution.yml
 
-**TestEngine Authentication:**
-- Admin credentials: `admin/admin` (hardcoded for CI simplicity)
-- Container runs ephemerally (destroyed after each test)
-- No persistent data or external network exposure
-- Secure for CI/CD environments
+# Run with specific project file
+gh workflow run testengine-execution.yml -f project_name="your-project.xml"
+```
 
-**Custom Authentication (Optional):**
-For enhanced security, you can use custom TestEngine credentials:
-1. Add `TESTENGINE_ADMIN_PASSWORD` to GitHub Secrets
-2. Update workflow environment variables accordingly
-3. Suitable for shared or production environments
-
+**Via GitHub API:**
 ## Report Formats
 
 The workflow downloads test results in multiple formats using the documented TestEngine API:
@@ -244,10 +241,18 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
 ❌ Error: License activation failed
 ```
 **Solutions:**
-- Verify your SLM access key in GitHub Secrets
-- Check license is active at https://accounts.smartbear.com/
-- Ensure you have TestEngine license (not just ReadyAPI)
-- Contact SmartBear support if license appears valid
+1. **Check License Valid**: Log into https://manage.smartbear.com/ → verify your assigned licenses
+2. **Verify Access Key**: User icon → Settings → Access Key (must be active)
+3. **Check License Type**: TestEngine floating license required (not just ReadyAPI license)
+4. **Contact Support**: If issues persist, contact SmartBear support with your account details
+
+> **📚 License Documentation**: [SmartBear ID-based Licenses for TestEngine](https://support.smartbear.com/testengine/docs/en/testengine-licenses/smartbear-id-based-licenses/work-with-smartbear-hosted-id-based-licenses.html)
+
+**Common License Problems:**
+- ❌ Using ReadyAPI license instead of TestEngine license
+- ❌ Expired or inactive license  
+- ❌ Wrong access key (copied license key instead of SLM access key)
+- ❌ License already active on another instance
 
 ### Project Upload Fails
 ```
