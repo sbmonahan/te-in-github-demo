@@ -54,8 +54,7 @@ jobs:
         docker run -d \
           --name testengine \
           -p 8080:8080 \
-          -e TESTENGINE_ADMIN_USERNAME=admin \
-          -e TESTENGINE_ADMIN_PASSWORD=admin \
+          -e TESTENGINE_PASSWORD=admin \
           -e JVM_OPT_XMS="-Xms2g" \
           -e JVM_OPT_XMX="-Xmx4g" \
           --add-host host.docker.internal:host-gateway \
@@ -71,58 +70,51 @@ jobs:
         docker exec testengine printenv | grep -i testengine || true
         
         echo ""
+        echo "Checking if admin user was created correctly..."
+        docker logs testengine | grep -i "admin\|password\|user" || echo "No admin/password messages found"
+        
+        echo ""
         echo "Testing basic container connectivity..."
         curl -v http://localhost:8080/api/v1/version || true
         
-        echo "Waiting for TestEngine to be ready..."
+        echo "Waiting for TestEngine to be fully healthy (matching Docker healthcheck)..."
         timeout 300s bash -c '
           attempt=0
           max_attempts=30
+          consecutive_success=0
+          required_consecutive=3
+          
           while [ $attempt -lt $max_attempts ]; do
             echo "Attempt $((attempt+1))/$max_attempts: Checking TestEngine health..."
-            if curl -f http://localhost:8080/api/v1/version 2>/dev/null; then
-              echo "✓ TestEngine is responding!"
-              exit 0
-            fi
-            echo "TestEngine not ready yet, waiting 10 seconds..."
-            sleep 10
-            attempt=$((attempt+1))
-          done
-          echo "❌ TestEngine failed to start after 5 minutes"
-          docker logs testengine
-          exit 1
-        '
-        echo "TestEngine is ready!"
-        
-        # Wait for license API endpoints to be ready
-        echo "Waiting for TestEngine license API to be ready..."
-        timeout 180s bash -c '
-          attempt=0
-          max_attempts=18
-          while [ $attempt -lt $max_attempts ]; do
-            echo "Attempt $((attempt+1))/$max_attempts: Checking license API availability..."
             
-            # Check if license API endpoint responds (even with 401 is good - means API is ready)
-            http_code=$(curl -s -o /dev/null -w "%{http_code}" -u admin:admin http://localhost:8080/api/v1/license || echo "000")
-            
-            if [ "$http_code" = "200" ] || [ "$http_code" = "401" ] || [ "$http_code" = "404" ]; then
-              echo "✓ License API is responding (HTTP $http_code)!"
-              break
+            # Use the same healthcheck as Docker Compose
+            if wget -qO- http://localhost:8080/api/v1/version 2>/dev/null || curl -fsS http://localhost:8080/api/v1/version 2>/dev/null; then
+              consecutive_success=$((consecutive_success + 1))
+              echo "✓ Health check passed ($consecutive_success/$required_consecutive consecutive successes)"
+              
+              if [ $consecutive_success -ge $required_consecutive ]; then
+                echo "✓ TestEngine is consistently healthy!"
+                exit 0
+              fi
+            else
+              consecutive_success=0
+              echo "Health check failed, resetting consecutive count"
             fi
             
-            echo "License API not ready yet (HTTP $http_code), waiting 10 seconds..."
+            echo "Waiting 10 seconds before next health check..."
             sleep 10
             attempt=$((attempt+1))
           done
           
-          if [ $attempt -eq $max_attempts ]; then
-            echo "⚠️ License API may not be fully ready, but proceeding..."
-          fi
+          echo "❌ TestEngine failed to become consistently healthy after 5 minutes"
+          docker logs testengine
+          exit 1
         '
+        echo "TestEngine is consistently healthy!"
         
-        # Final check of license status
-        echo "Checking current license status..."
-        curl -u admin:admin -H "Accept: application/json" http://localhost:8080/api/v1/license || echo "License check failed - will attempt activation in next step"
+        # Final check of license status (similar to Docker Compose te-license service)
+        echo "Checking current license status before activation..."
+        curl -u admin:admin -H "Accept: application/json" http://localhost:8080/api/v1/license || echo "No license found - will activate in next step"
         
     - name: Validate TestEngine connection
       run: node scripts/validate-connection.js

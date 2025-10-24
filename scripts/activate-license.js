@@ -20,10 +20,6 @@ async function activateLicense(maxRetries = 3) {
 
     console.log('Activating TestEngine license via SLM...');
     
-    // Brief wait to ensure TestEngine is fully initialized
-    console.log('Waiting 10 seconds for TestEngine full initialization...');
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    
     if (slmServer) {
         console.log(`Using SLM server: ${slmServer}`);
     } else {
@@ -76,6 +72,9 @@ async function activateLicense(maxRetries = 3) {
         const redactedData = { ...licenseData, accessKey: "****REDACTED****" };
         console.log(JSON.stringify(redactedData, null, 2));
         console.log('--------------------------');
+        
+        // Show credentials being used (redacted)
+        console.log(`Using credentials: ${username}:${"*".repeat(password.length)}`);
         
         // Activate the license via SLM
         console.log('Activating license via SLM...');
