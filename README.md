@@ -2,6 +2,8 @@
 
 **Automated ReadyAPI test execution in GitHub Actions with comprehensive reporting**
 
+> **⚠️ IMPORTANT DISCLAIMER**: This is sample code provided for demonstration purposes only. It is not warranted for any particular use case and is provided "as-is" without any support or warranty. Use at your own risk and discretion.
+
 This repository provides a complete solution for running ReadyAPI TestEngine tests in GitHub Actions CI/CD pipelines. It automatically spins up TestEngine in Docker, executes your ReadyAPI projects, and generates multiple report formats (JSON, JUnit XML, PDF, Excel).
 
 ## What This Does
@@ -20,13 +22,6 @@ Before using this workflow, you need:
 2. **ReadyAPI project** exported as XML
 3. **GitHub repository** with Actions enabled
 4. **SLM Access Key** (see setup instructions below)
-
-### Required GitHub Secrets
-
-| Secret Name | Required | Description |
-|-------------|----------|-------------|
-| `TESTENGINE_LICENSE_KEY` | ✅ **Yes** | Your SLM access key (UUID format) |
-| `TE_SLM_SERVER` | ❌ Optional | Custom SLM server URL (leave empty for SmartBear hosted SLM) |
 
 ### Troubleshooting License Issues
 
@@ -161,17 +156,6 @@ For enhanced security, you can use custom TestEngine credentials:
 2. Update workflow environment variables accordingly
 3. Suitable for shared or production environments
 
-## Features
-
-- **🚀 Fast TestEngine Setup**: Optimized Docker startup (~1.5-2 min total execution)
-- **🔑 License Management**: Activates TestEngine license via SLM (SmartBear License Manager)  
-- **📊 Project Execution**: Uploads and executes ReadyAPI projects
-- **⏱️ Smart Polling**: Monitors execution status with timeout protection
-- **📋 Multiple Report Formats**: Downloads JSON, JUnit XML, PDF, and Excel reports
-- **💾 Artifact Storage**: Stores test results as GitHub Artifacts (no git commits)
-- **🧹 Automatic Cleanup**: Properly cleans up containers after execution
-- **⚡ Performance Optimized**: 50% faster than standard setup (see PERFORMANCE-OPTIMIZATIONS.md)
-
 ## Report Formats
 
 The workflow downloads test results in multiple formats using the documented TestEngine API:
@@ -288,14 +272,5 @@ The GitHub Actions workflow automatically:
 ## 📞 Support & Resources
 
 - **Documentation**: This README and linked documentation files
-- **SmartBear Support**: https://support.smartbear.com/
 - **TestEngine API**: https://support.smartbear.com/testengine/docs/
 - **GitHub Actions**: https://docs.github.com/en/actions
-- **Issues**: Use GitHub Issues for repository-specific problems
-
-## 📄 Additional Documentation
-
-- [`PERFORMANCE-OPTIMIZATIONS.md`](PERFORMANCE-OPTIMIZATIONS.md) - Performance tuning details
-- [`SECURITY-REVIEW.md`](SECURITY-REVIEW.md) - Security analysis and best practices  
-- [`SOLUTION-SUMMARY.md`](SOLUTION-SUMMARY.md) - Technical implementation details
-- [`REPORTING-TROUBLESHOOTING.md`](REPORTING-TROUBLESHOOTING.md) - Report format investigation
