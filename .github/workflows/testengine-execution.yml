@@ -15,8 +15,8 @@ on:
 
 env:
   TESTENGINE_URL: http://localhost:8080
-  TESTENGINE_USERNAME: ""
-  TESTENGINE_PASSWORD: ${{ secrets.TESTENGINE_LICENSE_KEY }}
+  TESTENGINE_USERNAME: admin
+  TESTENGINE_PASSWORD: admin
 
 jobs:
   run-readyapi-tests:
@@ -52,7 +52,9 @@ jobs:
         docker run -d \
           --name testengine \
           -p 8080:8080 \
-          -e TESTENGINE_PASSWORD="${{ secrets.TESTENGINE_LICENSE_KEY }}" \
+          -e TESTENGINE_LICENSE_KEY="${{ secrets.TESTENGINE_LICENSE_KEY }}" \
+          -e TESTENGINE_ADMIN_USERNAME=admin \
+          -e TESTENGINE_ADMIN_PASSWORD=admin \
           -e JVM_OPT_XMS="-Xms2g" \
           -e JVM_OPT_XMX="-Xmx4g" \
           --add-host host.docker.internal:host-gateway \

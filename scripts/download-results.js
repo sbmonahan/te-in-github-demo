@@ -19,9 +19,10 @@ async function downloadResults(executionId) {
             timeout: 30000
         };
         
-        if (password) {
-            authConfig.headers = {
-                'Authorization': `Bearer ${password}`
+        if (username && password) {
+            authConfig.auth = {
+                username: username,
+                password: password
             };
         }
 

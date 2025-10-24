@@ -18,10 +18,11 @@ async function pollExecution(executionId, maxWaitMinutes = 30) {
                 timeout: 10000
             };
             
-            // If password is provided, use it for authentication
-            if (password) {
-                config.headers = {
-                    'Authorization': `Bearer ${password}`
+            // If username and password are provided, use basic authentication
+            if (username && password) {
+                config.auth = {
+                    username: username,
+                    password: password
                 };
             }
             

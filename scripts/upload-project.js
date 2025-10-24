@@ -30,9 +30,12 @@ async function uploadProject(projectFileName) {
             timeout: 30000
         };
         
-        // If password is provided, use it for authentication
-        if (password) {
-            config.headers['Authorization'] = `Bearer ${password}`;
+        // If username and password are provided, use basic authentication
+        if (username && password) {
+            config.auth = {
+                username: username,
+                password: password
+            };
         }
         
         const response = await axios.post(`${testEngineUrl}/api/v1/testjobs`, formData, config);
