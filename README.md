@@ -21,8 +21,14 @@ This repository demonstrates how to use GitHub Actions to:
 
 ## Required GitHub Secrets
 
-- `TESTENGINE_USERNAME` - TestEngine admin username (optional, defaults to 'admin')
+- `TESTENGINE_LICENSE_KEY` - Your TestEngine license key (required for running tests)
+- `TESTENGINE_USERNAME` - TestEngine admin username (optional, defaults to 'admin')  
 - `TESTENGINE_PASSWORD` - TestEngine admin password (optional, defaults to 'admin')
+
+### How to Add Secrets:
+1. Go to your repository → Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Add `TESTENGINE_LICENSE_KEY` with your actual license key
 
 ## Workflow
 
