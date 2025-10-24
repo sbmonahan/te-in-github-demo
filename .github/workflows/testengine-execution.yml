@@ -1,0 +1,123 @@
+name: ReadyAPI TestEngine Execution
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      project_name:
+        description: 'ReadyAPI project to execute'
+        required: true
+        default: 'te-sample-readyapi-project.xml'
+        type: string
+
+env:
+  TESTENGINE_URL: http://localhost:8080
+  TESTENGINE_USERNAME: ${{ secrets.TESTENGINE_USERNAME || 'admin' }}
+  TESTENGINE_PASSWORD: ${{ secrets.TESTENGINE_PASSWORD || 'admin' }}
+
+jobs:
+  run-readyapi-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Start TestEngine Container
+      run: |
+        echo "Starting TestEngine container..."
+        docker run -d \
+          --name testengine \
+          -p 8080:8080 \
+          -e TESTENGINE_ADMIN_USERNAME=${{ env.TESTENGINE_USERNAME }} \
+          -e TESTENGINE_ADMIN_PASSWORD=${{ env.TESTENGINE_PASSWORD }} \
+          smartbear/testengine:latest
+        
+        echo "Waiting for TestEngine to be ready..."
+        timeout 120s bash -c '
+          until curl -f -u ${{ env.TESTENGINE_USERNAME }}:${{ env.TESTENGINE_PASSWORD }} \
+            http://localhost:8080/api/v1/testjobs 2>/dev/null; do
+            echo "TestEngine not ready yet, waiting..."
+            sleep 5
+          done
+        '
+        echo "TestEngine is ready!"
+        
+    - name: Validate TestEngine connection
+      run: node scripts/validate-connection.js
+      
+    - name: Upload ReadyAPI project to TestEngine
+      id: upload
+      run: |
+        PROJECT_FILE="${{ github.event.inputs.project_name || 'te-sample-readyapi-project.xml' }}"
+        echo "Uploading project: $PROJECT_FILE"
+        EXECUTION_ID=$(node scripts/upload-project.js "$PROJECT_FILE")
+        echo "execution_id=$EXECUTION_ID" >> $GITHUB_OUTPUT
+        
+    - name: Execute ReadyAPI project
+      id: execute
+      run: |
+        EXECUTION_ID="${{ steps.upload.outputs.execution_id }}"
+        echo "Starting execution: $EXECUTION_ID"
+        node scripts/start-execution.js "$EXECUTION_ID"
+        
+    - name: Poll for execution completion
+      id: poll
+      run: |
+        EXECUTION_ID="${{ steps.upload.outputs.execution_id }}"
+        echo "Polling execution: $EXECUTION_ID"
+        node scripts/poll-execution.js "$EXECUTION_ID"
+        
+    - name: Download test results
+      run: |
+        EXECUTION_ID="${{ steps.upload.outputs.execution_id }}"
+        echo "Downloading results for: $EXECUTION_ID"
+        node scripts/download-results.js "$EXECUTION_ID"
+        
+    - name: Commit test results
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add timestamp to results directory
+        TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+        RESULTS_DIR="test-results/$TIMESTAMP"
+        
+        if [ -d "temp-results" ]; then
+          mkdir -p "$RESULTS_DIR"
+          mv temp-results/* "$RESULTS_DIR/" 2>/dev/null || true
+          rmdir temp-results 2>/dev/null || true
+          
+          git add test-results/
+          git commit -m "Add test results from execution ${{ steps.upload.outputs.execution_id }} - $TIMESTAMP" || exit 0
+          git push
+        else
+          echo "No results to commit"
+        fi
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: readyapi-test-results
+        path: test-results/
+        retention-days: 30
+        
+    - name: Cleanup TestEngine Container
+      if: always()
+      run: |
+        echo "Stopping and removing TestEngine container..."
+        docker stop testengine || true
+        docker rm testengine || true
+        echo "TestEngine container cleaned up"
