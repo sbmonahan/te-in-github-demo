@@ -17,7 +17,8 @@ env:
   TESTENGINE_URL: http://localhost:8080
   TESTENGINE_USERNAME: admin
   TESTENGINE_PASSWORD: admin
-  TESTENGINE_LICENSE_KEY: ${{ secrets.TESTENGINE_LICENSE_KEY }}
+  SLM_ACCESS_KEY: ${{ secrets.TESTENGINE_LICENSE_KEY }}
+  TE_SLM_SERVER: ${{ secrets.TE_SLM_SERVER }}
 
 jobs:
   run-readyapi-tests:
@@ -39,21 +40,20 @@ jobs:
       run: |
         echo "Starting TestEngine container..."
         
-        # Check if license key is available (but don't print it)
+        # Check if SLM access key is available (but don't print it)
         if [ -n "${{ secrets.TESTENGINE_LICENSE_KEY }}" ]; then
-          echo "✓ TestEngine license key is configured"
-          LICENSE_LENGTH=$(echo "${{ secrets.TESTENGINE_LICENSE_KEY }}" | wc -c)
-          echo "License key length: $LICENSE_LENGTH characters"
+          echo "✓ SLM access key is configured"
+          ACCESS_KEY_LENGTH=$(echo "${{ secrets.TESTENGINE_LICENSE_KEY }}" | wc -c)
+          echo "SLM access key length: $ACCESS_KEY_LENGTH characters"
         else
-          echo "❌ TestEngine license key is not configured"
-          echo "Please add TESTENGINE_LICENSE_KEY to repository secrets"
+          echo "❌ SLM access key is not configured"
+          echo "Please add TESTENGINE_LICENSE_KEY to repository secrets (this is your SLM access key)"
           exit 1
         fi
         
         docker run -d \
           --name testengine \
           -p 8080:8080 \
-          -e TESTENGINE_LICENSE_KEY="${{ secrets.TESTENGINE_LICENSE_KEY }}" \
           -e TESTENGINE_ADMIN_USERNAME=admin \
           -e TESTENGINE_ADMIN_PASSWORD=admin \
           -e JVM_OPT_XMS="-Xms2g" \

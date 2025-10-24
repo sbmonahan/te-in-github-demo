@@ -21,15 +21,24 @@ This repository demonstrates how to use GitHub Actions to:
 
 ## Required GitHub Secrets
 
-- `TESTENGINE_LICENSE_KEY` - Your TestEngine license key
+- `TESTENGINE_LICENSE_KEY` - Your SmartBear License Manager (SLM) access key
+- `TE_SLM_SERVER` - (Optional) Custom SLM server URL (leave empty for hosted SLM)
+
+### How to Get Your SLM Access Key:
+1. Log in to your SmartBear Account at https://accounts.smartbear.com/
+2. Go to Account Settings → API Access Keys
+3. Create or copy your existing API access key
 
 ### How to Add Secrets:
 1. Go to your repository → Settings → Secrets and variables → Actions
 2. Click "New repository secret"  
-3. Add `TESTENGINE_LICENSE_KEY` with your TestEngine license key
+3. Add `TESTENGINE_LICENSE_KEY` with your SmartBear License Manager access key
+4. Optionally add `TE_SLM_SERVER` if using a custom SLM server
+
+**Note:** The `TESTENGINE_LICENSE_KEY` secret should contain your SLM access key, not a direct license key.
 
 ### Authentication:
-- TestEngine container uses license key for activation
+- TestEngine uses SmartBear License Manager (SLM) for license activation
 - TestEngine admin user hardcoded as admin/admin (secure for ephemeral containers)
 - API calls use admin/admin for basic authentication
 - Container is destroyed after each workflow run

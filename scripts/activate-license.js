@@ -4,27 +4,37 @@ async function activateLicense() {
     const testEngineUrl = process.env.TESTENGINE_URL;
     const username = process.env.TESTENGINE_USERNAME;
     const password = process.env.TESTENGINE_PASSWORD;
-    const licenseKey = process.env.TESTENGINE_LICENSE_KEY;
+    const slmAccessKey = process.env.SLM_ACCESS_KEY;
+    const slmServer = process.env.TE_SLM_SERVER;
 
-    if (!licenseKey) {
-        console.error('❌ TESTENGINE_LICENSE_KEY environment variable not set');
+    if (!slmAccessKey) {
+        console.error('❌ SLM_ACCESS_KEY environment variable not set');
+        console.error('   This should be your SmartBear License Manager access key');
         process.exit(1);
     }
 
-    console.log('Attempting to activate TestEngine license...');
+    if (!username || !password) {
+        console.error('❌ TESTENGINE_USERNAME and TESTENGINE_PASSWORD must be set');
+        process.exit(1);
+    }
+
+    console.log('Activating TestEngine license via SLM...');
+    
+    if (slmServer) {
+        console.log(`Using SLM server: ${slmServer}`);
+    } else {
+        console.log('Using hosted SLM (no server override).');
+    }
 
     try {
         // First, try to get current license status
         const statusConfig = {
-            timeout: 10000
-        };
-        
-        if (username && password) {
-            statusConfig.auth = {
+            timeout: 10000,
+            auth: {
                 username: username,
                 password: password
-            };
-        }
+            }
+        };
 
         console.log('Checking current license status...');
         
@@ -44,31 +54,57 @@ async function activateLicense() {
             }
         }
 
-        // Try to activate the license
-        console.log('Activating license...');
+        // Build the SLM license request (matching your Docker Compose pattern)
+        const licenseData = {
+            issuer: "SLM",
+            accessKey: slmAccessKey
+        };
+        
+        // Add SLM server if specified
+        if (slmServer) {
+            licenseData.server = slmServer;
+        }
+        
+        console.log('--- Request (redacted) ---');
+        const redactedData = { ...licenseData, accessKey: "****REDACTED****" };
+        console.log(JSON.stringify(redactedData, null, 2));
+        console.log('--------------------------');
+        
+        // Activate the license via SLM
+        console.log('Activating license via SLM...');
         
         const activationConfig = {
             headers: {
                 'Content-Type': 'application/json'
             },
-            timeout: 30000
-        };
-        
-        if (username && password) {
-            activationConfig.auth = {
+            timeout: 30000,
+            auth: {
                 username: username,
                 password: password
-            };
-        }
-
-        const licenseData = {
-            license: licenseKey
+            }
         };
 
         const activationResponse = await axios.post(`${testEngineUrl}/api/v1/license`, licenseData, activationConfig);
         
-        console.log('✓ License activated successfully');
-        console.log('Activation response:', JSON.stringify(activationResponse.data, null, 2));
+        console.log(`License activation -> HTTP ${activationResponse.status}`);
+        console.log('--- Response body ---');
+        console.log(JSON.stringify(activationResponse.data, null, 2));
+        console.log('---------------------');
+        
+        if (activationResponse.status === 200) {
+            console.log('✓ License installed/activated.');
+        } else {
+            console.log(`⚠️ Unexpected HTTP ${activationResponse.status} but no error thrown.`);
+        }
+        
+        // Get final license status
+        console.log('--- Final license state ---');
+        try {
+            const finalStatusResponse = await axios.get(`${testEngineUrl}/api/v1/license`, statusConfig);
+            console.log(JSON.stringify(finalStatusResponse.data, null, 2));
+        } catch (finalError) {
+            console.log('Could not retrieve final license status:', finalError.message);
+        }
         
         return true;
         
@@ -78,6 +114,17 @@ async function activateLicense() {
         if (error.response) {
             console.error(`  Status: ${error.response.status}`);
             console.error(`  Message: ${error.response.data?.message || error.response.statusText}`);
+            
+            // Handle specific cases like your Docker script
+            if (error.response.status === 400) {
+                const message = error.response.data?.message || '';
+                if (message.toLowerCase().includes('already') && message.toLowerCase().includes('license')) {
+                    console.log('✓ License already installed (treating as success).');
+                    return true;
+                } else {
+                    console.error('400 Bad Request from TestEngine. See response above.');
+                }
+            }
             
             if (error.response.data) {
                 console.error('  Full response:', JSON.stringify(error.response.data, null, 2));
