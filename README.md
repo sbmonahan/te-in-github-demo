@@ -22,19 +22,29 @@ This repository demonstrates how to use GitHub Actions to:
 ## Required GitHub Secrets
 
 - `TESTENGINE_LICENSE_KEY` - Your TestEngine license key
-- `TESTENGINE_ADMIN_PASSWORD` - The admin password you configured during TestEngine initialization
 
 ### How to Add Secrets:
 1. Go to your repository → Settings → Secrets and variables → Actions
 2. Click "New repository secret"  
-3. Add both secrets:
-   - `TESTENGINE_LICENSE_KEY` - Your TestEngine license key
-   - `TESTENGINE_ADMIN_PASSWORD` - Your TestEngine admin password
+3. Add `TESTENGINE_LICENSE_KEY` with your TestEngine license key
 
 ### Authentication:
 - TestEngine container uses license key for activation
-- TestEngine admin user (username: admin) authenticates with the admin password
-- API calls use admin/[your-admin-password] for basic authentication
+- TestEngine admin user hardcoded as admin/admin (secure for ephemeral containers)
+- API calls use admin/admin for basic authentication
+- Container is destroyed after each workflow run
+
+### Security Note:
+**Admin credentials are hardcoded as admin/admin** for simplicity since:
+- Container runs temporarily (minutes) in private GitHub Actions environment
+- No persistent storage or external network exposure
+- Container is destroyed after each workflow execution
+
+**If you prefer configurable credentials:**
+1. Add `TESTENGINE_ADMIN_PASSWORD` to GitHub Secrets
+2. Update workflow env vars: `TESTENGINE_PASSWORD: ${{ secrets.TESTENGINE_ADMIN_PASSWORD }}`
+3. Update container env: `-e TESTENGINE_PASSWORD="${{ secrets.TESTENGINE_ADMIN_PASSWORD }}"`
+4. This provides additional security isolation if running in shared environments
 
 ## Workflow
 
