@@ -20,23 +20,34 @@ async function uploadProject(projectFileName) {
         
         const formData = new FormData();
         const fileStream = fs.createReadStream(projectPath);
+        
+        // Add all required form fields (matching your working Python script)
         formData.append('file', fileStream);
+        formData.append('testSuite', 'Test Suite 1');  // Actual test suite name from ReadyAPI project!
+        formData.append('jobDescription', `tag=GitHub Actions,label=${projectFileName}`);
+        formData.append('environment', 'GitHub Actions Container');
 
         const config = {
             headers: {
-                ...formData.getHeaders(),
-                'Content-Type': 'multipart/form-data'
+                ...formData.getHeaders()
+                // Don't set Content-Type manually - let axios handle it
             },
             timeout: 30000
         };
         
-        // Try different authentication methods
+        // Use basic authentication (matching your working setup)
         if (username && password) {
             config.auth = {
                 username: username,
                 password: password
             };
         }
+        
+        console.log('Form data being sent:');
+        console.log('- file:', projectFileName);
+        console.log('- testSuite: Test Suite 1');
+        console.log('- jobDescription: tag=GitHub Actions,label=' + projectFileName);
+        console.log('- environment: GitHub Actions Container');
         
         const response = await axios.post(`${testEngineUrl}/api/v1/testjobs`, formData, config);
 
