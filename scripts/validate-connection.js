@@ -17,13 +17,18 @@ async function validateConnection() {
         console.log('Validating TestEngine connection...');
         
         // Try to authenticate and get server info
-        const response = await axios.get(`${testEngineUrl}/api/v1/testjobs`, {
-            auth: {
-                username: username,
-                password: password
-            },
+        const config = {
             timeout: 10000
-        });
+        };
+        
+        // If password is provided, use it for authentication
+        if (password) {
+            config.headers = {
+                'Authorization': `Bearer ${password}`
+            };
+        }
+        
+        const response = await axios.get(`${testEngineUrl}/api/v1/version`, config);
 
         console.log('✓ Successfully connected to TestEngine');
         console.log(`✓ Server URL: ${testEngineUrl}`);

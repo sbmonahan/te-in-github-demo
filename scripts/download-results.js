@@ -14,15 +14,20 @@ async function downloadResults(executionId) {
         const tempDir = path.join(process.cwd(), 'temp-results');
         await fs.ensureDir(tempDir);
         
+        // Create auth config
+        const authConfig = {
+            timeout: 30000
+        };
+        
+        if (password) {
+            authConfig.headers = {
+                'Authorization': `Bearer ${password}`
+            };
+        }
+
         // Download execution report (JSON format)
         try {
-            const reportResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/report`, {
-                auth: {
-                    username: username,
-                    password: password
-                },
-                timeout: 30000
-            });
+            const reportResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/report`, authConfig);
 
             const reportPath = path.join(tempDir, `execution-report-${executionId}.json`);
             await fs.writeJson(reportPath, reportResponse.data, { spaces: 2 });
@@ -33,13 +38,7 @@ async function downloadResults(executionId) {
 
         // Download JUnit XML report
         try {
-            const junitResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/reports/junit`, {
-                auth: {
-                    username: username,
-                    password: password
-                },
-                timeout: 30000
-            });
+            const junitResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/reports/junit`, authConfig);
 
             const junitPath = path.join(tempDir, `junit-report-${executionId}.xml`);
             await fs.writeFile(junitPath, junitResponse.data);
@@ -50,13 +49,7 @@ async function downloadResults(executionId) {
 
         // Download execution logs
         try {
-            const logsResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/logs`, {
-                auth: {
-                    username: username,
-                    password: password
-                },
-                timeout: 30000
-            });
+            const logsResponse = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}/logs`, authConfig);
 
             const logsPath = path.join(tempDir, `execution-logs-${executionId}.txt`);
             await fs.writeFile(logsPath, logsResponse.data);

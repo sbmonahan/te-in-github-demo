@@ -8,13 +8,18 @@ async function startExecution(executionId) {
     try {
         console.log(`Starting execution: ${executionId}`);
         
-        const response = await axios.post(`${testEngineUrl}/api/v1/testjobs/${executionId}/run`, {}, {
-            auth: {
-                username: username,
-                password: password
-            },
+        const config = {
             timeout: 10000
-        });
+        };
+        
+        // If password is provided, use it for authentication
+        if (password) {
+            config.headers = {
+                'Authorization': `Bearer ${password}`
+            };
+        }
+        
+        const response = await axios.post(`${testEngineUrl}/api/v1/testjobs/${executionId}/run`, {}, config);
 
         console.log(`✓ Execution started successfully`);
         console.log(`✓ Status: ${response.status}`);

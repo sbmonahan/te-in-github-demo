@@ -14,13 +14,18 @@ async function pollExecution(executionId, maxWaitMinutes = 30) {
         console.log(`Max wait time: ${maxWaitMinutes} minutes`);
         
         while (Date.now() - startTime < maxWaitMs) {
-            const response = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}`, {
-                auth: {
-                    username: username,
-                    password: password
-                },
+            const config = {
                 timeout: 10000
-            });
+            };
+            
+            // If password is provided, use it for authentication
+            if (password) {
+                config.headers = {
+                    'Authorization': `Bearer ${password}`
+                };
+            }
+            
+            const response = await axios.get(`${testEngineUrl}/api/v1/testjobs/${executionId}`, config);
 
             const status = response.data.status;
             const currentStatus = response.data.currentStatus;

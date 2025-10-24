@@ -22,17 +22,20 @@ async function uploadProject(projectFileName) {
         const fileStream = fs.createReadStream(projectPath);
         formData.append('file', fileStream);
 
-        const response = await axios.post(`${testEngineUrl}/api/v1/testjobs`, formData, {
-            auth: {
-                username: username,
-                password: password
-            },
+        const config = {
             headers: {
                 ...formData.getHeaders(),
                 'Content-Type': 'multipart/form-data'
             },
             timeout: 30000
-        });
+        };
+        
+        // If password is provided, use it for authentication
+        if (password) {
+            config.headers['Authorization'] = `Bearer ${password}`;
+        }
+        
+        const response = await axios.post(`${testEngineUrl}/api/v1/testjobs`, formData, config);
 
         const executionId = response.data.testjobId;
         console.log(`✓ Project uploaded successfully`);
