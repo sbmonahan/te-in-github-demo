@@ -72,6 +72,12 @@ jobs:
         
     - name: Activate TestEngine license
       run: node scripts/activate-license.js
+      # NOTE: If license activation fails (e.g., all licenses in use), the workflow stops immediately.
+      # For production use, consider implementing license polling with retry logic:
+      # - Poll every 5 minutes for up to 15 minutes when licenses unavailable
+      # - Cost: ~15 extra GitHub Actions minutes per retry ($0.12 for private repos)
+      # - Add 'continue-on-error: true' and conditional retry steps
+      # - Best for critical workflows (main branch, releases) vs development/PR validation
       
     - name: Upload ReadyAPI project to TestEngine
       id: upload
@@ -79,11 +85,10 @@ jobs:
         PROJECT_FILE="${{ github.event.inputs.project_name || 'te-sample-readyapi-project.xml' }}"
         echo "Uploading project: $PROJECT_FILE"
         
-        # Capture output and get the last line (execution ID)
-        OUTPUT=$(node scripts/upload-project.js "$PROJECT_FILE")
-        EXECUTION_ID=$(echo "$OUTPUT" | tail -n 1)
+        # Run upload script and capture execution ID from final output line
+        EXECUTION_ID=$(node scripts/upload-project.js "$PROJECT_FILE" | tail -n 1)
         
-        echo "Captured execution ID: $EXECUTION_ID"
+        echo "Execution ID: $EXECUTION_ID"
         echo "execution_id=$EXECUTION_ID" >> $GITHUB_OUTPUT
         echo "✓ Job submitted and started automatically (no separate start call needed)"
         

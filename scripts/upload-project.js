@@ -63,7 +63,7 @@ async function uploadProject(projectFileName) {
         console.error(`✓ Project uploaded successfully`);
         console.error(`✓ Execution ID: ${executionId}`);
         
-        // Output ONLY the execution ID for GitHub Actions to capture (clean output)
+        // Output execution ID as clean final line (platform-agnostic)
         console.log(executionId);
         
         return executionId;
