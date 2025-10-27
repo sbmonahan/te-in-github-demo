@@ -325,6 +325,28 @@ Each script handles one specific responsibility:
 - **Maintainability**: Changes to one step don't affect others
 - **Reusability**: Scripts can be used outside GitHub Actions (local development, other CI systems)
 
+### GitHub Actions vs JavaScript Decision Matrix
+
+**Use GitHub Actions Shell Commands for:**
+- ✅ **System operations**: Docker lifecycle (`docker run`, `docker stop`, `docker rm`)
+- ✅ **CI/CD integration**: GitHub Actions output syntax (`echo "var=$value" >> $GITHUB_OUTPUT`)
+- ✅ **Simple variable assignments**: Basic string manipulation and environment variable exports
+- ✅ **File system operations**: Simple file checks, directory creation, basic path operations
+- ✅ **Performance-critical tasks**: When Node.js startup overhead matters
+
+**Use JavaScript Scripts for:**
+- ✅ **API interactions**: HTTP requests, JSON parsing, authentication handling
+- ✅ **Complex logic**: Loops, conditionals, sophisticated error handling
+- ✅ **Data processing**: File operations, data transformation, report generation
+- ✅ **Cross-platform compatibility**: Same code works on Windows/Linux/macOS runners
+- ✅ **Testable functionality**: Logic that needs unit testing and local development
+- ✅ **Timeout/retry logic**: Polling, health checks, status monitoring
+- ✅ **Integration with existing ecosystem**: Leveraging npm packages and Node.js libraries
+
+**Real Examples from This Project:**
+- 🐚 **Shell**: `docker run` commands, `$GITHUB_OUTPUT` assignments, environment variable checks
+- 🟨 **JavaScript**: `health-check.js` (replaces 24-line bash script), `poll-execution.js` (timeout/retry logic), `download-results-fixed.js` (multi-format API calls)
+
 ### CI/CD Integration Patterns
 
 **Polling vs. Webhooks**

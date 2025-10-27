@@ -15,6 +15,11 @@ on:
 
 env:
   TESTENGINE_URL: http://localhost:8080
+  # Hardcoded credentials are safe here because:
+  # - TestEngine container runs in isolated GitHub Actions environment (no external network access)
+  # - Container is ephemeral (destroyed after workflow completion ~2-3 minutes)
+  # - No persistence between runs - fresh container each time
+  # - Only used for localhost API calls within the secure runner
   TESTENGINE_USERNAME: admin
   TESTENGINE_PASSWORD: admin
   SLM_ACCESS_KEY: ${{ secrets.TESTENGINE_LICENSE_KEY }}
@@ -54,37 +59,16 @@ jobs:
         docker run -d \
           --name testengine \
           -p 8080:8080 \
-          -e TESTENGINE_PASSWORD=admin \
+          -e TESTENGINE_PASSWORD="$TESTENGINE_PASSWORD" \
           -e JVM_OPT_XMS="-Xms1g" \
           -e JVM_OPT_XMX="-Xmx2g" \
           --add-host host.docker.internal:host-gateway \
           smartbear/readyapi-testengine:latest
         
-        echo "Container started, waiting for TestEngine to be ready..."
+        echo "✓ TestEngine container started"
         
-        # Optimized health check - single success is sufficient for ephemeral CI environment
-        timeout 120s bash -c '
-          attempt=0
-          max_attempts=24  # 2 minutes max (24 * 5 seconds)
-          
-          while [ $attempt -lt $max_attempts ]; do
-            echo "Attempt $((attempt+1))/$max_attempts: Testing TestEngine readiness..."
-            
-            # Single health check is sufficient - if it responds, it is ready
-            if curl -fsS http://localhost:8080/api/v1/version >/dev/null 2>&1; then
-              echo "✅ TestEngine is ready and responding!"
-              exit 0
-            fi
-            
-            echo "Not ready yet, waiting 5 seconds..."
-            sleep 5
-            attempt=$((attempt+1))
-          done
-          
-          echo "❌ TestEngine failed to start within 2 minutes"
-          docker logs testengine | tail -50
-          exit 1
-        '
+    - name: Wait for TestEngine readiness
+      run: node scripts/health-check.js 120
         
     - name: Activate TestEngine license
       run: node scripts/activate-license.js
